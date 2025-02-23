@@ -89,7 +89,9 @@ You can exit the script with <kbd>ctrl</kbd>+<kbd>c</kbd>.
 
 You can install a `systemd` service by copying the provided configuration file
 using the command below. This service will automatically run the python script
-mentioned in the previous section on boot:
+mentioned in the previous section on boot.
+
+If you do not use the pi-user, remember to edit the service accordingly before copying it.
 
 ```
 sudo cp pihole-oled.service /etc/systemd/user/
