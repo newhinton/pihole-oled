@@ -15,6 +15,8 @@ piece of proto-board and short wires. There is nothing fancy here.
 enabled](https://learn.adafruit.com/adafruits-raspberry-pi-lesson-4-gpio-setup/configuring-i2c)
 and Python 3.5.
 
+Pi-Hole needs to be at least Version 6. You also need to specify your password in the `main.py`-file.
+
 ### Software requirements
 
 If you do not have `pip3` installed, start by installing it:
@@ -42,8 +44,22 @@ Now install a few libraries for
 [Pillow](https://pillow.readthedocs.io/en/stable/index.html):
 
 ```
-sudo apt-get install libopenjp2-7 libtiff5
+sudo apt-get install libopenjp2-7 libtiff5 libfreetype6-dev
 ```
+
+Note: if the script later does not start with a message like this: `The _imagingft C module is not installed`, you need to reinstall pil like this:
+
+First, enable the pipenv:
+```
+pipenv shell
+```
+Then remove and reinstall pil, *after* you installed `libfreetype6-dev`:
+
+```
+pip uninstall pil
+pip install --no-cache-dir pil
+```
+
 
 ### Project installation
 
