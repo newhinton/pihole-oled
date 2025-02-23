@@ -21,6 +21,17 @@ mount_point = os.getenv('PIHOLE_OLED_MOUNT_POINT', '/')
 # There is no reset pin on the SSD1306 0.96"
 RST = None
 
+PIHOLE_URL="http://localhost"
+PIHOLE_PW=""
+
+
+def updateSIDToken():
+    print("getting token...")
+    url = PIHOLE_URL + "/api/auth"
+    payload = {"password": PIHOLE_PW}
+    response = requests.request("POST", url, json=payload, verify=False)
+    return response.json()["session"]["sid"]
+
 
 try:
     disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST)
@@ -61,6 +72,9 @@ else:
 sleep = 1  # seconds
 
 hostname = platform.node()
+
+sid = updateSIDToken()
+
 
 try:
     elapsed_seconds = 0
@@ -136,12 +150,17 @@ try:
             )
         else:
             try:
-                req = requests.get('http://pi.hole/admin/api.php')
-                data = req.json()
+                req = requests.get(PIHOLE_URL + '/api/stats/summary', json={"sid": sid})
+                queries = req.json()["queries"]
+                clients = req.json()["clients"]
+                gravity = req.json()["gravity"]
+
+                req = requests.get(PIHOLE_URL + '/api/dns/blocking', json={"sid": sid})
+                status = req.json()
 
                 draw.text(
                     (0, 0),
-                    "Pi-hole (%s)" % data["status"],
+                    "Pi-hole (%s)" % str(status["blocking"]),
                     font=font,
                     fill=255
                 )
@@ -150,16 +169,13 @@ try:
 
                 draw.text(
                     (0, 22),
-                    "Blocked: %d (%d%%)" % (
-                        data["ads_blocked_today"],
-                        data["ads_percentage_today"]
-                    ),
+                    "Blocked: %d (%d%%)" % (queries["blocked"], queries["percent_blocked"]),
                     font=font,
                     fill=255
                 )
                 draw.text(
                     (0, 32),
-                    "Queries: %d" % data["dns_queries_today"],
+                    "Queries: %s" % queries["total"],
                     font=font,
                     fill=255
                 )
@@ -168,11 +184,12 @@ try:
 
                 draw.text(
                     (0, 54),
-                    "Blocklist: %d" % data["domains_being_blocked"],
+                    "Blocklist: %s" % gravity["domains_being_blocked"],
                     font=font,
                     fill=255
                 )
-            except:  ## noqa
+            except Exception as e:  ## noqa
+                print(e)
                 draw.text(
                     (0, 0),
                     "ERROR!",
